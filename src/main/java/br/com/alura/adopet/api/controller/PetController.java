@@ -17,11 +17,9 @@ public class PetController {
     @Autowired
     private PetService service;
 
-
     @GetMapping
     public ResponseEntity<List<PetDTO>> listarTodosDisponiveis() {
         List<PetDTO> pets = service.buscarPetsDisponiveis();
         return ResponseEntity.ok(pets);
     }
-
 }
