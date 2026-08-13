@@ -2,6 +2,7 @@ package br.com.alura.adopet.api.service;
 
 import br.com.alura.adopet.api.dto.SolicitacaoAdocaoDTO;
 import br.com.alura.adopet.api.model.Abrigo;
+import br.com.alura.adopet.api.model.Adocao;
 import br.com.alura.adopet.api.model.Pet;
 import br.com.alura.adopet.api.model.Tutor;
 import br.com.alura.adopet.api.repository.AdocaoRepository;
@@ -10,13 +11,17 @@ import br.com.alura.adopet.api.repository.TutorRepository;
 import br.com.alura.adopet.api.validacoes.ValidacaoSolicitacaoAdocao;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,18 +54,32 @@ class AdocaoServiceTest {
     @Mock
     private Abrigo abrigo;
 
-    @Mock
     private SolicitacaoAdocaoDTO dto;
+
+    @Captor
+    private ArgumentCaptor<Adocao> adocaoCaptor;
 
     @Test
     void deveriaSalvarAdocaoAoSolicitar() {
         //Arrange
+        this.dto = new SolicitacaoAdocaoDTO(10l, 20l, "motivo qualquer");
+        given(petRepository.getReferenceById(dto.idPet())).willReturn(pet);
+        given(tutorRepository.getReferenceById(dto.idTutor())).willReturn(tutor);
+        given(pet.getAbrigo()).willReturn(abrigo);
 
         //ACT
         adocaoService.solicitar(dto);
 
         //ASSERT
-        then(petRepository).should().save(any()); //verifica se o petRepository teve o método save chamado com qualquer parâmetro
+        then(adocaoRepository).should().save(adocaoCaptor.capture()); //verifica se o petRepository teve o método save chamado com qualquer parâmetro
+        Adocao adocaoSalva = adocaoCaptor.getValue();
+        assertEquals(pet, adocaoSalva.getPet());
+        assertEquals(tutor, adocaoSalva.getTutor());
+        assertEquals(dto.motivo(), adocaoSalva.getMotivo());
 
     }
 }
+
+//quando preciso capturar um objeto que é passado como parâmetro pelo mock,
+// podemos declarar uma classe e fazer uma anotação do mockito tbm.
+//ArgumentCaptor, capturar um argumento passado pelo mock
